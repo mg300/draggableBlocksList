@@ -1,9 +1,83 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useRef, useState } from "react";
+import styled, { keyframes } from "styled-components";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
+const Title = styled.h1`
+  text-align: center;
+  font-family: "Courier New", Courier, monospace;
+`;
+const List = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`;
+const swapAnimation = keyframes`
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-120%);
+  }
+
+`;
+const BlockWrapper = styled.div`
+  display: flex;
+  /* position: absolute; */
+  gap: 2rem;
+  align-items: center;
+  font-size: 2rem;
+  cursor: grab;
+  &.animating {
+    transition: transform 0.3s ease-in-out;
+    animation: ${swapAnimation} 0.3s ease-in-out;
+  }
+`;
+
+const Block = styled.div`
+  width: 10rem;
+  height: 5rem;
+  box-shadow: inset 0px 0px 8px -4px rgba(66, 68, 90, 1);
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 1) -90%, ${(props) => props.$bgColor} 100%);
+  background-position: -20% -10%;
+  font-size: 1.8rem;
+  font-family: sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  position: relative;
+  border-radius: 0.2rem;
+  &:hover {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+`;
+const Button = styled.button`
+  all: unset;
+  cursor: pointer;
+  &:hover {
+    transform: scale(1.08);
+  }
+  &:active {
+    transform: scale(0.9);
+  }
+`;
 function DraggableBlocksList() {
-  const BlocksList = [
+  const dragBlockNode = useRef();
+  const dragOverBlockNode = useRef();
+  const [animatingIndex, setAnimatingIndex] = useState(-1);
+  const [BlocksList, setBlockList] = useState([
     { num: 1, color: "#FF6347" }, // Tomato
     { num: 2, color: "#FFD700" }, // Gold
     { num: 3, color: "#FF69B4" }, // HotPink
@@ -14,76 +88,67 @@ function DraggableBlocksList() {
     { num: 8, color: "#32CD32" }, // LimeGreen
     { num: 9, color: "#FF1493" }, // DeepPink
     { num: 10, color: "#9370DB" }, // MediumPurple
-  ];
-  const Title = styled.p`
-    font-size: 2rem;
-    font-weight: 600;
-    text-align: center;
-    font-family: "Courier New", Courier, monospace;
-  `;
-  const List = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  `;
-  const BlockWrapper = styled.div`
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    font-size: 2rem;
-  `;
-  const Block = styled.div`
-    width: 10rem;
-    height: 5rem;
-    box-shadow: inset 0px 0px 14px -4px rgba(66, 68, 90, 1);
-    background: radial-gradient(circle at top left, rgba(255, 255, 255, 1) -90%, ${(props) => props.bgColor} 100%);
-    background-position: -20% -10%;
-    font-size: 1.8rem;
-    font-family: sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    border-radius: 0.2rem;
-    &:hover {
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.1);
-      }
-    }
-    &:active {
-      transform: scale(0.97);
-    }
-  `;
-  const Button = styled.button`
-    all: unset;
-    cursor: pointer;
-    &:hover {
-      transform: scale(1.08);
-    }
-    &:active {
-      transform: scale(0.9);
-    }
-  `;
+  ]);
+  function updateList(blockId, newBlockId) {
+    if (blockId === newBlockId) return;
+    setBlockList((prevList) => {
+      const newBlockIndex = BlocksList.findIndex((item) => blockId === item.num);
+      const dragItem = prevList.find((item) => item.num === newBlockId);
+      const newList = prevList.filter((item) => item.num !== newBlockId);
+      newList.splice(newBlockIndex, 0, dragItem);
+
+      return newList;
+    });
+  }
+  function swapPlace(blockIndex, newBlockIndex) {
+    if (blockIndex === newBlockIndex) return;
+    setBlockList((prevList) => {
+      const newList = [...prevList];
+      newList[blockIndex] = prevList[newBlockIndex];
+      newList[newBlockIndex] = prevList[blockIndex];
+      return newList;
+    });
+  }
+  function onDragStart(e) {
+    dragBlockNode.current = e.target;
+    console.log(dragBlockNode.current);
+  }
+  function onDragEnter(e) {
+    dragOverBlockNode.current = e.currentTarget;
+    updateList(+dragBlockNode.current.id, +dragOverBlockNode.current.id);
+  }
+  function onDragEnd(e) {}
+  function moveUp(block) {
+    const blockIndex = BlocksList.indexOf(block);
+    if (blockIndex === 0) return;
+    swapPlace(blockIndex, blockIndex - 1);
+  }
+  function moveDown(block) {
+    const blockIndex = BlocksList.indexOf(block);
+    if (blockIndex === BlocksList.length - 1) return;
+    swapPlace(blockIndex, blockIndex + 1);
+  }
   return (
     <>
       <Title>Draggable Blocks List</Title>
       <List>
-        {BlocksList.map((block) => (
-          <BlockWrapper key={block.num}>
-            <Button>
+        {BlocksList.map((block, index) => (
+          <BlockWrapper
+            id={block.num}
+            key={block.num}
+            onDragStart={(e) => onDragStart(e)}
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={(e) => onDragEnter(e)}
+            onDragEnd={(e) => onDragEnd(e)}
+            // onMouseDown={(e) => dragElement(e)}
+            draggable
+            className={animatingIndex === index ? "animating" : ""}
+          >
+            <Button onClick={(e) => moveDown(block)}>
               <FaArrowDown />
             </Button>
-            <Block bgColor={block.color}>{block.num}</Block>
-            <Button>
+            <Block $bgColor={block.color}>{block.num}</Block>
+            <Button onClick={(e) => moveUp(block)}>
               <FaArrowUp />
             </Button>
           </BlockWrapper>
