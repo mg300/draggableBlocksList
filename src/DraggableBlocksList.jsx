@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
 const Title = styled.h1`
@@ -12,28 +12,22 @@ const List = styled.div`
   align-items: center;
   gap: 1rem;
 `;
-const swapAnimation = keyframes`
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-120%);
-  }
-
-`;
 const BlockWrapper = styled.div`
   display: flex;
-  /* position: absolute; */
+  position: relative;
   gap: 2rem;
   align-items: center;
   font-size: 2rem;
   cursor: grab;
-  &.animating {
-    transition: transform 0.3s ease-in-out;
-    animation: ${swapAnimation} 0.3s ease-in-out;
+  &.animationUp {
+    transform: translateY(-120%);
+    transition-duration: 0.3s;
+  }
+  &.animationDown {
+    transform: translateY(120%);
+    transition-duration: 0.3s;
   }
 `;
-
 const Block = styled.div`
   width: 10rem;
   height: 5rem;
@@ -74,9 +68,10 @@ const Button = styled.button`
   }
 `;
 function DraggableBlocksList() {
+  const [animationUp, setAnimationUp] = useState(-1);
+  const [animationDown, setAnimationDown] = useState(-1);
   const dragBlockNode = useRef();
   const dragOverBlockNode = useRef();
-  const [animatingIndex, setAnimatingIndex] = useState(-1);
   const [BlocksList, setBlockList] = useState([
     { num: 1, color: "#FF6347" }, // Tomato
     { num: 2, color: "#FFD700" }, // Gold
@@ -89,44 +84,41 @@ function DraggableBlocksList() {
     { num: 9, color: "#FF1493" }, // DeepPink
     { num: 10, color: "#9370DB" }, // MediumPurple
   ]);
-  function updateList(blockId, newBlockId) {
-    if (blockId === newBlockId) return;
-    setBlockList((prevList) => {
-      const newBlockIndex = BlocksList.findIndex((item) => blockId === item.num);
-      const dragItem = prevList.find((item) => item.num === newBlockId);
-      const newList = prevList.filter((item) => item.num !== newBlockId);
-      newList.splice(newBlockIndex, 0, dragItem);
 
-      return newList;
-    });
-  }
   function swapPlace(blockIndex, newBlockIndex) {
+    setAnimationDown(-1);
+    setAnimationUp(-1);
     if (blockIndex === newBlockIndex) return;
     setBlockList((prevList) => {
       const newList = [...prevList];
-      newList[blockIndex] = prevList[newBlockIndex];
-      newList[newBlockIndex] = prevList[blockIndex];
+      const [deletedItem] = newList.splice(blockIndex, 1);
+      newList.splice(newBlockIndex, 0, deletedItem);
+
       return newList;
     });
   }
   function onDragStart(e) {
     dragBlockNode.current = e.target;
-    console.log(dragBlockNode.current);
   }
   function onDragEnter(e) {
     dragOverBlockNode.current = e.currentTarget;
-    updateList(+dragBlockNode.current.id, +dragOverBlockNode.current.id);
+    const blockIndex = BlocksList.findIndex((item) => +dragBlockNode.current.id === item.num);
+    const newBlockIndex = BlocksList.findIndex((item) => +dragOverBlockNode.current.id === item.num);
+    swapPlace(blockIndex, newBlockIndex);
   }
-  function onDragEnd(e) {}
   function moveUp(block) {
     const blockIndex = BlocksList.indexOf(block);
     if (blockIndex === 0) return;
-    swapPlace(blockIndex, blockIndex - 1);
+    setAnimationUp(blockIndex);
+    setAnimationDown(blockIndex - 1);
+    setTimeout(() => swapPlace(blockIndex, blockIndex - 1), 300);
   }
   function moveDown(block) {
     const blockIndex = BlocksList.indexOf(block);
     if (blockIndex === BlocksList.length - 1) return;
-    swapPlace(blockIndex, blockIndex + 1);
+    setAnimationUp(blockIndex + 1);
+    setAnimationDown(blockIndex);
+    setTimeout(() => swapPlace(blockIndex + 1, blockIndex), 300);
   }
   return (
     <>
@@ -136,13 +128,14 @@ function DraggableBlocksList() {
           <BlockWrapper
             id={block.num}
             key={block.num}
+            data-index={index} // Używaj data-index zamiast klucza
             onDragStart={(e) => onDragStart(e)}
             onDragOver={(e) => e.preventDefault()}
             onDragEnter={(e) => onDragEnter(e)}
-            onDragEnd={(e) => onDragEnd(e)}
-            // onMouseDown={(e) => dragElement(e)}
             draggable
-            className={animatingIndex === index ? "animating" : ""}
+            className={`${animationDown === index ? "animationDown " : ""}${
+              animationUp === index ? "animationUp" : ""
+            }`}
           >
             <Button onClick={(e) => moveDown(block)}>
               <FaArrowDown />
