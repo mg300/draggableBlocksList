@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
-const Title = styled.h1`
+const Title = styled.h2`
   text-align: center;
   font-family: "Courier New", Courier, monospace;
 `;
@@ -69,7 +69,7 @@ const Button = styled.button`
     transform: scale(0.9);
   }
 `;
-function DraggableBlocksList() {
+function DraggableBlocksListNoLibrary() {
   const [animationUp, setAnimationUp] = useState(-1);
   const [animationDown, setAnimationDown] = useState(-1);
   const listContainer = useRef();
@@ -165,8 +165,10 @@ function DraggableBlocksList() {
     }
   }
   return (
-    <>
-      <Title>Draggable Blocks List</Title>
+    <div>
+      <Title>
+        Draggable Blocks List<br></br>(no library)
+      </Title>
       <List ref={listContainer}>
         {BlocksList.map((block, index) => (
           <BlockWrapper
@@ -187,8 +189,8 @@ function DraggableBlocksList() {
           </BlockWrapper>
         ))}
       </List>
-    </>
+    </div>
   );
 }
 
-export default DraggableBlocksList;
+export default DraggableBlocksListNoLibrary;

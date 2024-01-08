@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
-const Title = styled.h1`
+const Title = styled.h2`
   text-align: center;
   font-family: "Courier New", Courier, monospace;
 `;
@@ -121,14 +121,16 @@ function DraggableBlocksList() {
     setTimeout(() => swapPlace(blockIndex + 1, blockIndex), 300);
   }
   return (
-    <>
-      <Title>Draggable Blocks List</Title>
+    <div>
+      <Title>
+        Draggable Blocks List <br></br>(Draggable attribute)
+      </Title>
       <List>
         {BlocksList.map((block, index) => (
           <BlockWrapper
             id={block.num}
             key={block.num}
-            data-index={index} // Używaj data-index zamiast klucza
+            data-index={index}
             onDragStart={(e) => onDragStart(e)}
             onDragOver={(e) => e.preventDefault()}
             onDragEnter={(e) => onDragEnter(e)}
@@ -147,7 +149,7 @@ function DraggableBlocksList() {
           </BlockWrapper>
         ))}
       </List>
-    </>
+    </div>
   );
 }
 

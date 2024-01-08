@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
-const Title = styled.h1`
+const Title = styled.h2`
   text-align: center;
   font-family: "Courier New", Courier, monospace;
 `;
@@ -15,7 +15,6 @@ const List = styled.div`
 
 const BlockWrapper = styled.div`
   position: relative;
-  display: flex;
   display: flex;
   gap: 2rem;
   align-items: center;
@@ -119,8 +118,10 @@ function DraggableBlocksListDnD() {
     swapPlace(result.source.index, result.destination.index);
   }
   return (
-    <>
-      <Title>Draggable Blocks List with Beautiful DnD</Title>
+    <div>
+      <Title>
+        Draggable Blocks List<br></br>(Beautiful DnD)
+      </Title>
       <DragDropContext onDragEnd={handleOnDragEnd}>
         <Droppable droppableId="droppable">
           {(provided) => (
@@ -152,7 +153,7 @@ function DraggableBlocksListDnD() {
           )}
         </Droppable>
       </DragDropContext>
-    </>
+    </div>
   );
 }
 
